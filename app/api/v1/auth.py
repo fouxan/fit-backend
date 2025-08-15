@@ -7,8 +7,11 @@ from app.schemas.auth import Token, LoginRequest, RefreshTokenRequest
 from app.schemas.user import UserCreate, UserResponse
 from app.services.auth import AuthService
 from app.services.user import UserService
+from app.services.subscription import SubscriptionService
 
 router = APIRouter()
+
+subscription_service = SubscriptionService()
 
 
 @router.post("/register", response_model=UserResponse)
@@ -17,9 +20,23 @@ async def register(
     db: Session = Depends(get_db)
 ):
     """
-    Register a new user
+    Register a new user and set up their subscription
     """
+    # Create the user
     user = UserService.create_user(db, user_create)
+    
+    try:
+        # Set up their subscription
+        await subscription_service.create_initial_subscription(
+            db=db,
+            user=user,
+            plan_type=user_create.selected_plan,
+            payment_method_id=user_create.payment_method_id
+        )
+    except Exception as e:
+        # If subscription setup fails, the user is still created with free plan
+        logger.error(f"Error setting up subscription for user {user.id}: {str(e)}")
+    
     return user
 
 

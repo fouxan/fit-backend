@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict, UUID4
 from datetime import datetime
+from app.models.subscription import PlanType
 
 
 class UserBase(BaseModel):
@@ -15,6 +16,8 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    selected_plan: PlanType = PlanType.FREE  # Default to free plan
+    payment_method_id: Optional[str] = None  # Stripe payment method ID
 
 
 class UserUpdate(BaseModel):
