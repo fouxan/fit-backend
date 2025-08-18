@@ -6,9 +6,10 @@ from typing import List, Dict, Any
 
 # Email templates directory
 templates = Environment(
-    loader=PackageLoader('app', 'templates/email'),
-    autoescape=select_autoescape(['html', 'xml'])
+    loader=PackageLoader("app", "templates/email"),
+    autoescape=select_autoescape(["html", "xml"]),
 )
+
 
 class EmailService:
     def __init__(self):
@@ -20,7 +21,7 @@ class EmailService:
             MAIL_SERVER=settings.MAIL_SERVER,
             MAIL_STARTTLS=True,
             MAIL_SSL_TLS=False,
-            USE_CREDENTIALS=True
+            USE_CREDENTIALS=True,
         )
         self.fast_mail = FastMail(self.conf)
 
@@ -29,19 +30,16 @@ class EmailService:
         subject: str,
         recipients: List[str],
         template_name: str,
-        context: Dict[str, Any]
+        context: Dict[str, Any],
     ) -> None:
         """Send email using template"""
         template = templates.get_template(f"{template_name}.html")
         html = template.render(**context)
-        
+
         message = MessageSchema(
-            subject=subject,
-            recipients=recipients,
-            html=html,
-            subtype="html"
+            subject=subject, recipients=recipients, html=html, subtype="html"
         )
-        
+
         await self.fast_mail.send_message(message)
 
     async def send_welcome_email(self, email: str, username: str) -> None:
@@ -50,9 +48,7 @@ class EmailService:
             subject="Welcome to Fitness Tracker!",
             recipients=[email],
             template_name="welcome",
-            context={
-                "username": username
-            }
+            context={"username": username},
         )
 
     async def send_password_reset(self, email: str, reset_token: str) -> None:
@@ -62,17 +58,11 @@ class EmailService:
             subject="Reset Your Password",
             recipients=[email],
             template_name="password_reset",
-            context={
-                "reset_url": reset_url
-            }
+            context={"reset_url": reset_url},
         )
 
     async def send_subscription_confirmation(
-        self,
-        email: str,
-        plan_name: str,
-        amount: float,
-        next_billing_date: str
+        self, email: str, plan_name: str, amount: float, next_billing_date: str
     ) -> None:
         """Send subscription confirmation email"""
         await self.send_email(
@@ -82,6 +72,6 @@ class EmailService:
             context={
                 "plan_name": plan_name,
                 "amount": amount,
-                "next_billing_date": next_billing_date
-            }
+                "next_billing_date": next_billing_date,
+            },
         )
