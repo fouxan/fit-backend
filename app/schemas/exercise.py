@@ -21,7 +21,7 @@ class ExerciseCategory(ExerciseCategoryBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class MuscleGroupBase(BaseModel):
     name: str
@@ -36,7 +36,7 @@ class MuscleGroup(MuscleGroupBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class EquipmentBase(BaseModel):
     name: str
@@ -51,7 +51,7 @@ class Equipment(EquipmentBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ExerciseBase(BaseModel):
     name: str
@@ -88,4 +88,4 @@ class Exercise(ExerciseBase):
     equipment: List[Equipment]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

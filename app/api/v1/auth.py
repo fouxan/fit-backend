@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.db.session import get_db
@@ -7,6 +7,7 @@ from app.schemas.auth import Token, LoginRequest, RefreshTokenRequest
 from app.schemas.user import UserCreate, UserRead
 from app.services.auth import AuthService
 from app.services.user import UserService
+from app.services.email import EmailService
 # from app.services.subscription import SubscriptionService
 # from utils.logger import logger
 
@@ -18,6 +19,7 @@ router = APIRouter()
 @router.post("/register", response_model=UserRead)
 async def register(
     user_create: UserCreate,
+    background: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """
@@ -25,7 +27,8 @@ async def register(
     """
     # Create the user
     user = UserService.create_user(db, user_create)
-    
+    background.add_task(EmailService.send_welcome_email, user.email, user.username)
+
     # try:
     #     # Set up their subscription
     #     await subscription_service.create_initial_subscription(
@@ -75,3 +78,40 @@ async def refresh_token(
     """
     token = AuthService.refresh_token(db, refresh_data.refresh_token)
     return token
+
+
+@router.post("/forgot_password")
+async def forgot_password(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Initiate password reset process
+    """
+    try:
+        await AuthService.initiate_password_reset(db, email)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    return {"msg": "Password reset email sent if the email is registered."}
+
+
+@router.post("/reset_password")
+async def reset_password(
+    token: str,
+    new_password: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset password using the token sent via email
+    """
+    try:
+        AuthService.reset_password(db, token, new_password)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    return {"msg": "Password has been reset successfully."}

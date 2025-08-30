@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import get_settings
+from app.api.v1 import auth, users, workouts, exercises
+import uvicorn
 
 settings = get_settings()
-from app.api.v1 import auth, users, workouts, exercises
 
 # Create FastAPI instance
 app = FastAPI(
@@ -36,4 +37,14 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        log_config=settings.LOGGING_CONFIG,
+        log_level=settings.UVICORN_LOG_LEVEL,
+    )
 
