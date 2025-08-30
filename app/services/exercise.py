@@ -1,10 +1,9 @@
 from typing import List, Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.models.exercise import Exercise, MuscleGroup, Equipment, ExerciseCategory
+from app.models.exercise import ExerciseCatalog, MuscleGroup, Equipment, ExerciseCategory
 from app.models.user import User
 from app.schemas.exercise import ExerciseCreate, ExerciseUpdate
-from app.services.plan_limits import PlanLimitService
 from sqlalchemy.exc import IntegrityError
 
 
@@ -12,15 +11,8 @@ class ExerciseService:
     @staticmethod
     def create_exercise(
         db: Session, exercise: ExerciseCreate, user: User, is_custom: bool = True
-    ) -> Exercise:
+    ) -> ExerciseCatalog:
         """Create a new exercise"""
-        if is_custom and not PlanLimitService.check_custom_exercise_permission(
-            db, user
-        ):
-            raise HTTPException(
-                status_code=402,
-                detail="Your current plan does not allow creating custom exercises. Please upgrade to create custom exercises.",
-            )
 
         # Verify category exists
         category = (
@@ -52,7 +44,7 @@ class ExerciseService:
             )
 
         try:
-            db_exercise = Exercise(
+            db_exercise = ExerciseCatalog(
                 **exercise.dict(exclude={"muscle_group_ids", "equipment_ids"}),
                 is_custom=is_custom,
                 created_by_id=user.id if is_custom else None,
@@ -70,9 +62,9 @@ class ExerciseService:
             )
 
     @staticmethod
-    def get_exercise(db: Session, exercise_id: str) -> Exercise:
+    def get_exercise(db: Session, exercise_id: str) -> ExerciseCatalog:
         """Get exercise by ID"""
-        exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+        exercise = db.query(ExerciseCatalog).filter(ExerciseCatalog.id == exercise_id).first()
         if not exercise:
             raise HTTPException(status_code=404, detail="Exercise not found")
         return exercise
@@ -80,7 +72,7 @@ class ExerciseService:
     @staticmethod
     def update_exercise(
         db: Session, exercise_id: str, exercise_update: ExerciseUpdate, user: User
-    ) -> Exercise:
+    ) -> ExerciseCatalog:
         """Update an exercise"""
         db_exercise = ExerciseService.get_exercise(db, exercise_id)
 
@@ -169,25 +161,25 @@ class ExerciseService:
         equipment_id: Optional[str] = None,
         muscle_group_id: Optional[str] = None,
         include_custom: bool = True,
-    ) -> List[Exercise]:
+    ) -> List[ExerciseCatalog]:
         """List exercises with optional filters"""
-        query = db.query(Exercise)
+        query = db.query(ExerciseCatalog)
 
         if category_id:
-            query = query.filter(Exercise.category_id == category_id)
+            query = query.filter(ExerciseCatalog.category_id == category_id)
 
         if difficulty:
-            query = query.filter(Exercise.difficulty == difficulty)
+            query = query.filter(ExerciseCatalog.difficulty == difficulty)
 
         if equipment_id:
-            query = query.join(Exercise.equipment).filter(Equipment.id == equipment_id)
+            query = query.join(ExerciseCatalog.equipment).filter(Equipment.id == equipment_id)
 
         if muscle_group_id:
-            query = query.join(Exercise.muscle_groups).filter(
+            query = query.join(ExerciseCatalog.muscle_groups).filter(
                 MuscleGroup.id == muscle_group_id
             )
 
         if not include_custom:
-            query = query.filter(Exercise.is_custom == False)
+            query = query.filter(ExerciseCatalog.is_custom == False)
 
         return query.offset(skip).limit(limit).all()

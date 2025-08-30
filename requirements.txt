@@ -1,10 +1,10 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-dotenv==1.0.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
+pydantic==2.8.2
+pydantic-settings==2.4.0
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.9
 alembic==1.12.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
@@ -25,7 +25,7 @@ fastapi-mail==1.4.1
 
 # Rate Limiting
 fastapi-limiter==0.1.5
-redis==5.0.1
+redis==4.6.0
 
 # Stripe Integration
 stripe==7.0.0
@@ -36,5 +36,5 @@ flower==2.0.1  # Celery monitoring
 
 # Utils
 pyjwt==2.8.0
-sluggify==0.0.1
+python-slugify==8.0.1
 pytz==2023.3

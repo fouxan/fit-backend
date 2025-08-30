@@ -1,8 +1,10 @@
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from app.config.settings import settings
+from app.config.settings import get_settings
 from pathlib import Path
 from jinja2 import Environment, select_autoescape, PackageLoader
 from typing import List, Dict, Any
+
+settings = get_settings()
 
 # Email templates directory
 templates = Environment(

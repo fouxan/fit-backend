@@ -1,8 +1,9 @@
-from pydantic import BaseModel, EmailStr
+# app/schemas/auth.py
+from pydantic import BaseModel
 
 
 class LoginRequest(BaseModel):
-    username: str  # Can be username or email
+    username: str  # username or email
     password: str
 
 

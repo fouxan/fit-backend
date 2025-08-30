@@ -1,10 +1,11 @@
-from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict, UUID4
+# app/schemas/user.py
+from typing import Optional, List, Dict, Any
+from pydantic import EmailStr, UUID4, ConfigDict, BaseModel
 from datetime import datetime
-from app.models.subscription import PlanType
+from .common import ORMModel
 
 
-class UserBase(BaseModel):
+class UserBase(ORMModel):
     email: EmailStr
     username: str
     full_name: Optional[str] = None
@@ -13,14 +14,18 @@ class UserBase(BaseModel):
     date_of_birth: Optional[str] = None
     fitness_goal: Optional[str] = None
 
+    # new profile fields
+    training_experience: Optional[str] = None
+    primary_goals: Optional[List[str]] = None
+    injury_history: Optional[Dict[str, Any]] = None
+    training_frequency: Optional[int] = None
+
 
 class UserCreate(UserBase):
     password: str
-    selected_plan: PlanType = PlanType.FREE  # Default to free plan
-    payment_method_id: Optional[str] = None  # Stripe payment method ID
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(ORMModel):
     email: Optional[EmailStr] = None
     username: Optional[str] = None
     full_name: Optional[str] = None
@@ -29,17 +34,17 @@ class UserUpdate(BaseModel):
     date_of_birth: Optional[str] = None
     fitness_goal: Optional[str] = None
     password: Optional[str] = None
+    training_experience: Optional[str] = None
+    primary_goals: Optional[List[str]] = None
+    injury_history: Optional[Dict[str, Any]] = None
+    training_frequency: Optional[int] = None
 
 
-class UserResponse(UserBase):
+class UserRead(UserBase):
     id: UUID4
+    username: str
+    full_name: str
     is_active: bool
     is_superuser: bool
     created_at: datetime
     updated_at: datetime
-    
-    model_config = ConfigDict(from_attributes=True)
-
-
-class UserInDB(UserResponse):
-    hashed_password: str

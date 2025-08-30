@@ -1,44 +1,36 @@
-from typing import List, Optional, Dict, Union
-from pydantic import BaseModel, UUID4, conint, confloat
+# app/schemas/workout.py
+from typing import Optional, List, Dict, Any
+from pydantic import UUID4
 from datetime import datetime
-from enum import Enum
-from .exercise import Exercise
+from .common import ORMModel
+from .enums import WorkoutDifficulty, WorkoutStatus
+from .catalog import ExerciseRead
 
-class WorkoutDifficulty(str, Enum):
-    BEGINNER = "beginner"
-    INTERMEDIATE = "intermediate"
-    ADVANCED = "advanced"
 
-class WorkoutStatus(str, Enum):
-    NOT_STARTED = "not_started"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ABANDONED = "abandoned"
-
-class WorkoutExerciseBase(BaseModel):
+class WorkoutExerciseBase(ORMModel):
     exercise_id: UUID4
     order: int
     sets: int
     reps: Optional[int] = None
-    duration: Optional[int] = None  # in seconds
-    rest_duration: Optional[int] = None  # in seconds
+    duration: Optional[int] = None  # seconds
+    rest_duration: Optional[int] = None
     notes: Optional[str] = None
     rep_scheme: Optional[Dict[str, int]] = None
+
 
 class WorkoutExerciseCreate(WorkoutExerciseBase):
     pass
 
-class WorkoutExercise(WorkoutExerciseBase):
+
+class WorkoutExerciseRead(WorkoutExerciseBase):
     id: UUID4
     workout_id: UUID4
-    exercise: Exercise
+    exercise: ExerciseRead
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
 
-class WorkoutBase(BaseModel):
+class WorkoutBase(ORMModel):
     name: str
     description: Optional[str] = None
     difficulty: WorkoutDifficulty
@@ -47,52 +39,65 @@ class WorkoutBase(BaseModel):
     is_public: bool = False
     is_template: bool = False
 
+
 class WorkoutCreate(WorkoutBase):
     exercises: List[WorkoutExerciseCreate]
 
-class Workout(WorkoutBase):
+
+class WorkoutRead(WorkoutBase):
     id: UUID4
     created_by_id: UUID4
-    exercises: List[WorkoutExercise]
+    exercises: List[WorkoutExerciseRead]
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
 
-class ExerciseSetBase(BaseModel):
-    set_number: int
-    reps: Optional[int] = None
-    weight: Optional[float] = None
-    duration: Optional[int] = None
-    rpe: Optional[conint(ge=1, le=10)] = None
-    notes: Optional[str] = None
+class WorkoutPlanWorkoutCreate(ORMModel):
+    workout_id: UUID4
+    week_number: int  # 1+
+    day_number: int  # 1-7
 
-class ExerciseSetCreate(ExerciseSetBase):
-    workout_exercise_id: UUID4
 
-class ExerciseSet(ExerciseSetBase):
+class WorkoutPlanBase(ORMModel):
+    name: str
+    description: Optional[str] = None
+    duration_weeks: int
+    difficulty: WorkoutDifficulty
+    is_public: bool = False
+
+
+class WorkoutPlanCreate(WorkoutPlanBase):
+    workouts: List[WorkoutPlanWorkoutCreate]
+
+
+class WorkoutPlanWorkoutRead(WorkoutPlanWorkoutCreate):
+    workout: WorkoutRead
+
+
+class WorkoutPlanRead(WorkoutPlanBase):
     id: UUID4
-    workout_session_id: UUID4
+    created_by_id: UUID4
+    workouts: List[WorkoutPlanWorkoutRead]
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
 
-class WorkoutSessionBase(BaseModel):
+class WorkoutSessionBase(ORMModel):
     workout_id: UUID4
     notes: Optional[str] = None
+
 
 class WorkoutSessionCreate(WorkoutSessionBase):
     pass
 
-class WorkoutSessionUpdate(BaseModel):
-    notes: Optional[str] = None
-    mood_rating: Optional[conint(ge=1, le=5)] = None
-    difficulty_rating: Optional[conint(ge=1, le=5)] = None
 
-class WorkoutSession(WorkoutSessionBase):
+class WorkoutSessionUpdate(ORMModel):
+    notes: Optional[str] = None
+    mood_rating: Optional[int] = None  # 1-5
+    difficulty_rating: Optional[int] = None  # 1-5
+
+
+class WorkoutSessionRead(WorkoutSessionBase):
     id: UUID4
     user_id: UUID4
     start_time: Optional[datetime] = None
@@ -102,40 +107,5 @@ class WorkoutSession(WorkoutSessionBase):
     calories_burned: Optional[int] = None
     mood_rating: Optional[int] = None
     difficulty_rating: Optional[int] = None
-    exercise_sets: List[ExerciseSet]
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        orm_mode = True
-
-class WorkoutPlanBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-    duration_weeks: int
-    difficulty: WorkoutDifficulty
-    is_public: bool = False
-
-class WorkoutPlanWorkoutCreate(BaseModel):
-    workout_id: UUID4
-    week_number: conint(ge=1)
-    day_number: conint(ge=1, le=7)
-
-class WorkoutPlanCreate(WorkoutPlanBase):
-    workouts: List[WorkoutPlanWorkoutCreate]
-
-class WorkoutPlanWorkout(WorkoutPlanWorkoutCreate):
-    workout: Workout
-
-    class Config:
-        orm_mode = True
-
-class WorkoutPlan(WorkoutPlanBase):
-    id: UUID4
-    created_by_id: UUID4
-    workouts: List[WorkoutPlanWorkout]
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True

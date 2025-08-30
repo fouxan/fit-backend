@@ -7,9 +7,6 @@ import uuid
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import boto3
-from botocore.exceptions import ClientError
-
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 

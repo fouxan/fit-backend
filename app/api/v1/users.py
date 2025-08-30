@@ -4,13 +4,13 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.api.dependencies import get_current_user, get_current_active_superuser
 from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdate
+from app.schemas.user import UserRead, UserUpdate
 from app.services.user import UserService
 
 router = APIRouter()
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserRead)
 async def get_current_user_info(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
@@ -20,7 +20,7 @@ async def get_current_user_info(
     return current_user
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put("/me", response_model=UserRead)
 async def update_current_user(
     user_update: UserUpdate,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -33,7 +33,7 @@ async def update_current_user(
     return updated_user
 
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=UserRead)
 async def get_user(
     user_id: str,
     current_user: Annotated[User, Depends(get_current_active_superuser)],
@@ -51,7 +51,7 @@ async def get_user(
     return user
 
 
-@router.get("/", response_model=List[UserResponse])
+@router.get("/", response_model=List[UserRead])
 async def get_users(
     current_user: Annotated[User, Depends(get_current_active_superuser)],
     skip: int = 0,

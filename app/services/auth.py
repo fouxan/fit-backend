@@ -2,12 +2,13 @@ from datetime import datetime
 from typing import Optional
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from app.config.settings import settings
+from app.config.settings import get_settings
 from app.core.security import create_access_token, create_refresh_token
 from app.core.exceptions import InvalidCredentialsException, UnauthorizedException
 from app.schemas.auth import Token
 from app.services.user import UserService
 
+settings = get_settings()
 
 class AuthService:
     @staticmethod

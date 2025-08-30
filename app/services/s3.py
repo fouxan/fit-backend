@@ -2,7 +2,7 @@ from __future__ import annotations
 import boto3
 from botocore.config import Config
 from typing import BinaryIO, Optional
-from app.models.s3 import PresignedURL
+from app.schemas.s3 import PresignedURL
 from app.config import settings
 
 settings = settings.get_settings()

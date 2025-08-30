@@ -1,18 +1,17 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from app.core.rate_limiter import rate_limiter
+# from app.core.rate_limiter import rate_limiter
 from app.api.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.schemas.exercise import (
     Exercise, ExerciseCreate, ExerciseUpdate,
-    ExerciseCategory, MuscleGroup, Equipment
 )
 from app.services.exercise import ExerciseService
 
 router = APIRouter()
 
-@router.post("/exercises/", response_model=Exercise, dependencies=[Depends(rate_limiter)])
+@router.post("/exercises/", response_model=Exercise)
 def create_exercise(
     exercise: ExerciseCreate,
     db: Session = Depends(get_db),
@@ -21,7 +20,7 @@ def create_exercise(
     """Create a new custom exercise"""
     return ExerciseService.create_exercise(db, exercise, current_user)
 
-@router.get("/exercises/{exercise_id}", response_model=Exercise, dependencies=[Depends(rate_limiter)])
+@router.get("/exercises/{exercise_id}", response_model=Exercise)
 def get_exercise(
     exercise_id: str,
     db: Session = Depends(get_db),
@@ -30,7 +29,7 @@ def get_exercise(
     """Get exercise details"""
     return ExerciseService.get_exercise(db, exercise_id)
 
-@router.put("/exercises/{exercise_id}", response_model=Exercise, dependencies=[Depends(rate_limiter)])
+@router.put("/exercises/{exercise_id}", response_model=Exercise)
 def update_exercise(
     exercise_id: str,
     exercise: ExerciseUpdate,
@@ -40,7 +39,7 @@ def update_exercise(
     """Update an exercise"""
     return ExerciseService.update_exercise(db, exercise_id, exercise, current_user)
 
-@router.delete("/exercises/{exercise_id}", dependencies=[Depends(rate_limiter)])
+@router.delete("/exercises/{exercise_id}")
 def delete_exercise(
     exercise_id: str,
     db: Session = Depends(get_db),
@@ -50,7 +49,7 @@ def delete_exercise(
     ExerciseService.delete_exercise(db, exercise_id, current_user)
     return {"status": "success"}
 
-@router.get("/exercises/", response_model=List[Exercise], dependencies=[Depends(rate_limiter)])
+@router.get("/exercises/", response_model=List[Exercise])
 def list_exercises(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

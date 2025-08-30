@@ -4,17 +4,14 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.models.workout import (
-    Workout, WorkoutExercise, WorkoutSession,
-    ExerciseSet, WorkoutPlan, WorkoutPlanWorkout,
-    WorkoutStatus
+    Workout, WorkoutExercise, WorkoutSession, 
+    WorkoutPlan, WorkoutPlanWorkout, WorkoutStatus
 )
 from app.models.user import User
 from app.schemas.workout import (
     WorkoutCreate, WorkoutExerciseCreate,
-    WorkoutPlanCreate, WorkoutSessionCreate,
-    ExerciseSetCreate, WorkoutSessionUpdate
+    WorkoutPlanCreate, WorkoutSessionCreate, WorkoutSessionUpdate
 )
-from app.services.plan_limits import PlanLimitService
 from app.services.exercise import ExerciseService
 
 class WorkoutService:
@@ -26,7 +23,6 @@ class WorkoutService:
     ) -> Workout:
         """Create a new workout"""
         # Check workout limit
-        PlanLimitService.check_workout_limit(db, user)
 
         # Verify all exercises exist
         for exercise in workout.exercises:
@@ -101,7 +97,6 @@ class WorkoutService:
     ) -> WorkoutPlan:
         """Create a new workout plan"""
         # Check plan limit
-        PlanLimitService.check_plan_limit(db, user)
 
         # Verify all workouts exist and are accessible
         for workout_data in plan.workouts:
@@ -207,48 +202,48 @@ class WorkoutService:
             db.rollback()
             raise HTTPException(status_code=400, detail="Error completing workout session")
 
-    @staticmethod
-    def record_exercise_set(
-        db: Session,
-        session_id: str,
-        set_data: ExerciseSetCreate,
-        user: User
-    ) -> ExerciseSet:
-        """Record an exercise set in a workout session"""
-        # Verify session exists and is active
-        session = db.query(WorkoutSession).filter(
-            WorkoutSession.id == session_id,
-            WorkoutSession.user_id == user.id,
-            WorkoutSession.status == WorkoutStatus.IN_PROGRESS
-        ).first()
+    # @staticmethod
+    # def record_exercise_set(
+    #     db: Session,
+    #     session_id: str,
+    #     set_data: ExerciseSetCreate,
+    #     user: User
+    # ) -> ExerciseSet:
+    #     """Record an exercise set in a workout session"""
+    #     # Verify session exists and is active
+    #     session = db.query(WorkoutSession).filter(
+    #         WorkoutSession.id == session_id,
+    #         WorkoutSession.user_id == user.id,
+    #         WorkoutSession.status == WorkoutStatus.IN_PROGRESS
+    #     ).first()
 
-        if not session:
-            raise HTTPException(
-                status_code=404,
-                detail="Active workout session not found"
-            )
+    #     if not session:
+    #         raise HTTPException(
+    #             status_code=404,
+    #             detail="Active workout session not found"
+    #         )
 
-        # Verify workout exercise exists and belongs to the session's workout
-        workout_exercise = db.query(WorkoutExercise).filter(
-            WorkoutExercise.id == set_data.workout_exercise_id,
-            WorkoutExercise.workout_id == session.workout_id
-        ).first()
+    #     # Verify workout exercise exists and belongs to the session's workout
+    #     workout_exercise = db.query(WorkoutExercise).filter(
+    #         WorkoutExercise.id == set_data.workout_exercise_id,
+    #         WorkoutExercise.workout_id == session.workout_id
+    #     ).first()
 
-        if not workout_exercise:
-            raise HTTPException(
-                status_code=404,
-                detail="Workout exercise not found in current workout"
-            )
+    #     if not workout_exercise:
+    #         raise HTTPException(
+    #             status_code=404,
+    #             detail="Workout exercise not found in current workout"
+    #         )
 
-        try:
-            db_set = ExerciseSet(
-                **set_data.dict(),
-                workout_session_id=session_id
-            )
-            db.add(db_set)
-            db.commit()
-            db.refresh(db_set)
-            return db_set
-        except IntegrityError:
-            db.rollback()
-            raise HTTPException(status_code=400, detail="Error recording exercise set")
+    #     try:
+    #         db_set = ExerciseSet(
+    #             **set_data.dict(),
+    #             workout_session_id=session_id
+    #         )
+    #         db.add(db_set)
+    #         db.commit()
+    #         db.refresh(db_set)
+    #         return db_set
+    #     except IntegrityError:
+    #         db.rollback()
+    #         raise HTTPException(status_code=400, detail="Error recording exercise set")

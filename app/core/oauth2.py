@@ -1,7 +1,9 @@
 from fastapi import HTTPException, status
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from app.config.settings import settings
+from app.config.settings import get_settings
+
+settings = get_settings()
 
 
 class GoogleOAuth2:
